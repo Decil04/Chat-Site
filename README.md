@@ -1,43 +1,51 @@
-# QuizMaster
-Quiz Master
+Flask Chat App
 
-Introduction
+Description
 
-Quiz Master is an interactive quiz application developed for IITM projects. It allows users to participate in quizzes, track scores, and evaluate their knowledge across various topics.
+Flask Chat App is a real-time chat application built using Flask and WebSockets. It allows users to communicate instantly in a chatroom environment. This project is designed for learning and practical implementation of WebSockets with Flask.
 
 Features
 
+Real-time messaging
+
 User-friendly interface
 
-Multiple quiz categories
+Multiple chat rooms
 
-Real-time score tracking
-
-Responsive design
+Lightweight and fast
 
 Installation
 
 Clone the repository:
 
-git clone https://github.com/Decil04/QuizMaster.git
+git clone https://github.com/Decil04/Flask-Chat-App.git
 
 Navigate to the project folder:
 
-cd QuizMaster
+cd Flask-Chat-App
 
-Install dependencies (if applicable):
+Create a virtual environment and activate it:
 
-npm install  # or pip install -r requirements.txt (for Python projects)
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+Install dependencies:
+
+pip install -r requirements.txt
 
 Usage
 
-Run the project using:
+Run the Flask application:
 
-npm start  # or python main.py (for Python projects)
+python app.py
+
+Then open your browser and go to:
+
+http://127.0.0.1:5000
 
 Contributing
 
-Feel free to contribute by submitting issues or pull requests.
+Feel free to fork the repository and submit pull requests with improvements.
 
 License
 
