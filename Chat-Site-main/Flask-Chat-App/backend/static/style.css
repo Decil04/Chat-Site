@@ -1,0 +1,36 @@
+.messages-container {
+    height: 100%;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.message {
+    max-width: 85%;
+    word-break: break-word;
+}
+
+.message.own-message {
+    margin-left: auto;
+}
+
+.max-w-md {
+    max-width: 28rem;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-gray-600);
+}

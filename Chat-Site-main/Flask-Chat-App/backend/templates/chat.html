@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Military Command Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .chat-container {
+            height: calc(100vh - 40px);
+            margin: 20px auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 100, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 100, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .card {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: none;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-body {
+            color: white;
+        }
+        .form-control {
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 100, 255, 0.4);
+            color: white;
+        }
+        .form-control:focus {
+            background-color: rgba(0, 0, 0, 0.8);
+            border-color: rgba(0, 100, 255, 0.6);
+            color: white;
+            box-shadow: 0 0 0 0.25rem rgba(0, 100, 255, 0.25);
+        }
+        .btn-primary {
+            background-color: rgba(0, 100, 255, 0.6);
+            border: none;
+        }
+        .btn-success {
+            background-color: rgba(0, 255, 100, 0.6);
+            border: none;
+        }
+        .btn-danger {
+            background-color: rgba(255, 0, 0, 0.6);
+            border: none;
+        }
+        .soldier-card {
+            border: 1px solid rgba(0, 100, 255, 0.3);
+        }
+        .secret-card {
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+        .role-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+        .owner-badge {
+            background-color: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: gold;
+        }
+        .member-badge {
+            background-color: rgba(0, 100, 255, 0.2);
+            border: 1px solid rgba(0, 100, 255, 0.3);
+            color: #00ff00;
+        }
+        .secret-badge {
+            background-color: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff4444;
+        }
+        
+        /* Teleportation Animation Styles */
+        .teleport-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 2s ease;
+        }
+        
+        .teleport-overlay.earth {
+            background: radial-gradient(circle at center, rgba(0, 100, 255, 0), rgba(0, 100, 255, 0.8));
+        }
+        
+        .teleport-overlay.mars {
+            background: radial-gradient(circle at center, rgba(255, 0, 0, 0), rgba(255, 0, 0, 0.8));
+        }
+        
+        .teleport-active {
+            opacity: 1;
+            transform: scale(1.5);
+        }
+
+        .planet-zoom {
+            transition: transform 2s ease;
+        }
+        
+        .zoom-effect {
+            transform: scale(3);
+        }
+
+        /* Form submission animation */
+        .form-submitting {
+            animation: formGlow 1s infinite;
+        }
+
+        @keyframes formGlow {
+            0% { box-shadow: 0 0 5px rgba(0, 100, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 100, 255, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(0, 100, 255, 0.5); }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="teleport-overlay"></div>
+    
+    <div class="container">
+        <div class="chat-container">
+            <h1 class="text-center mb-4">⭐ SPACE MILITARY COMMAND CENTER ⭐</h1>
+            
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <span class="role-badge owner-badge">★ Major ★</span>
+                            <h5 class="card-title">Establish Earth Base</h5>
+                            <p class="text-muted mb-3">Create a new Earth command base and assume the role of Major.</p>
+                            <form action="/create_room" method="POST" onsubmit="return startTeleport(this, 'earth', 2)">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" name="username" placeholder="Enter Codename" required>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" name="room_id" placeholder="Enter Custom Base ID (optional)">
+                                    <small class="text-muted">Leave empty for auto-generated ID</small>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="number" class="form-control" name="member_limit" placeholder="Member Limit (optional)">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Establish Base</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card soldier-card">
+                        <div class="card-body">
+                            <span class="role-badge member-badge">SOLDIER</span>
+                            <h5 class="card-title">Join Earth Base</h5>
+                            <p class="text-muted mb-3">Join an existing Earth base as a Soldier.</p>
+                            <form action="/join_room" method="POST" onsubmit="return startTeleport(this, 'earth', 2)">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" name="username" placeholder="Enter Your Callsign" required>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" name="room_id" placeholder="Enter Base ID" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">Report For Duty</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card secret-card">
+                        <div class="card-body">
+                            <span class="role-badge secret-badge">TOP SECRET</span>
+                            <h5 class="card-title">Mars Operations</h5>
+                            <p class="text-muted mb-3">Establish a classified Mars base for special operations.</p>
+                            <form action="/create_secret_room" method="POST" onsubmit="return startTeleport(this, 'mars', 3)">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" name="username" placeholder="Enter Codename" required>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="number" class="form-control" name="member_limit" placeholder="Member Limit (optional)">
+                                </div>
+                                <button type="submit" class="btn btn-danger">Establish Mars Base</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Three.js setup for solar system
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Create Sun
+        const sunGeometry = new THREE.SphereGeometry(3, 32, 32);
+        const sunMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFFF00,
+            emissive: 0xFFFF00
+        });
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        scene.add(sun);
+
+        // Create planets
+        const planets = [];
+        const planetData = [
+            { size: 0.8, distance: 8, color: 0x808080, speed: 0.02 },    // Mercury
+            { size: 1.2, distance: 12, color: 0xFFA500, speed: 0.015 },  // Venus
+            { size: 1.5, distance: 16, color: 0x0000FF, speed: 0.01 },   // Earth
+            { size: 1.3, distance: 20, color: 0xFF4500, speed: 0.008 }   // Mars
+        ];
+
+        planetData.forEach(data => {
+            const planetGeometry = new THREE.SphereGeometry(data.size, 32, 32);
+            const planetMaterial = new THREE.MeshPhongMaterial({
+                color: data.color,
+                shininess: 25
+            });
+            const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+            planet.userData = { distance: data.distance, speed: data.speed, angle: Math.random() * Math.PI * 2 };
+            planets.push(planet);
+            scene.add(planet);
+        });
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        // Add point light (sun)
+        const sunLight = new THREE.PointLight(0xFFFFFF, 2);
+        scene.add(sunLight);
+
+        // Position camera
+        camera.position.z = 40;
+        camera.position.y = 20;
+        camera.lookAt(scene.position);
+
+        // Teleportation effect function
+        function startTeleport(form, destination, planetIndex) {
+            const overlay = document.querySelector('.teleport-overlay');
+            const targetPlanet = planets[planetIndex];
+            
+            // Add appropriate class for destination
+            overlay.classList.add(destination);
+            
+            // Start the teleport animation
+            setTimeout(() => {
+                overlay.classList.add('teleport-active');
+                form.classList.add('form-submitting');
+                
+                // Zoom effect on target planet
+                targetPlanet.scale.set(2, 2, 2);
+                
+                // Camera zoom towards planet
+                const planetPos = targetPlanet.position.clone();
+                const duration = 2000; // 2 seconds
+                const startTime = Date.now();
+                
+                function animateCamera() {
+                    const now = Date.now();
+                    const progress = Math.min((now - startTime) / duration, 1);
+                    
+                    camera.position.lerp(planetPos, progress * 0.1);
+                    camera.lookAt(planetPos);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animateCamera);
+                    } else {
+                        // Submit the form after animation
+                        form.submit();
+                    }
+                }
+                
+                animateCamera();
+            }, 100);
+            
+            return false; // Prevent default form submission
+        }
+
+        // Modify the animation loop to include smooth planet rotations
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate sun
+            sun.rotation.y += 0.001;
+
+            // Update planets with smooth transitions
+            planets.forEach((planet, index) => {
+                planet.userData.angle += planet.userData.speed;
+                const targetX = Math.cos(planet.userData.angle) * planet.userData.distance;
+                const targetZ = Math.sin(planet.userData.angle) * planet.userData.distance;
+                
+                // Smooth position transition
+                planet.position.x += (targetX - planet.position.x) * 0.1;
+                planet.position.z += (targetZ - planet.position.z) * 0.1;
+                planet.rotation.y += 0.02;
+            });
+
+            // Smooth camera movement
+            const cameraAngle = Date.now() * 0.0001;
+            const targetX = Math.cos(cameraAngle) * 50;
+            const targetZ = Math.sin(cameraAngle) * 50;
+            
+            camera.position.x += (targetX - camera.position.x) * 0.05;
+            camera.position.z += (targetZ - camera.position.z) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html> 
